@@ -58,9 +58,6 @@ async function main() {
       const publicKey = receipt.logs[2].data.substr(130, 130);
       const tokenId = ethers.keccak256("0x" + publicKey);
       console.log(
-        `Minting took ${elapsed}ms to confirm.  Checking with local chronicle node to see if we got ${publicKey} yet`
-      );
-      console.log(
         `Success on number ${i}: ${JSON.stringify(timings, null, 2)}`
       );
       allTimings.push(timings);
