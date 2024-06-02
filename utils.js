@@ -1,4 +1,4 @@
-const { ethers } = require("ethers");
+// const { ethers } = require("ethers");
 const { ethers: ethersv5 } = require("ethers-v5");
 const stakingContractABI = require("./abis/Staking.json");
 const resolverContractABI = require("./abis/ContractResolver.json");
@@ -15,8 +15,10 @@ const networks = {
 };
 
 const getSigner = async (rpcUrl) => {
-  const provider = new ethers.JsonRpcProvider(rpcUrl);
-  const wallet = new ethers.Wallet(privateKey, provider);
+  //   const provider = new ethers.JsonRpcProvider(rpcUrl);
+  //   const wallet = new ethers.Wallet(privateKey, provider);
+  const provider = new ethersv5.providers.JsonRpcProvider(rpcUrl);
+  const wallet = new ethersv5.Wallet(privateKey, provider);
   return wallet;
 };
 
@@ -41,9 +43,17 @@ const getNetworkInfo = async (selectedNetwork) => {
   const { env, stakingContractAddress } = network;
 
   // lookup resolver contract address from staking contract
-  const provider = new ethers.JsonRpcProvider(rpcUrl);
+  //   const provider = new ethers.JsonRpcProvider(rpcUrl);
 
-  const stakingContract = new ethers.Contract(
+  //   const stakingContract = new ethers.Contract(
+  //     stakingContractAddress,
+  //     stakingContractABI,
+  //     provider
+  //   );
+
+  const provider = new ethersv5.providers.JsonRpcProvider(rpcUrl);
+
+  const stakingContract = new ethersv5.Contract(
     stakingContractAddress,
     stakingContractABI,
     provider
@@ -51,7 +61,13 @@ const getNetworkInfo = async (selectedNetwork) => {
 
   const resolverContractAddress = await stakingContract.contractResolver();
 
-  const resolverContract = new ethers.Contract(
+  //   const resolverContract = new ethers.Contract(
+  //     resolverContractAddress,
+  //     resolverContractABI,
+  //     provider
+  //   );
+
+  const resolverContract = new ethersv5.Contract(
     resolverContractAddress,
     resolverContractABI,
     provider
@@ -97,4 +113,5 @@ const getNetworkInfo = async (selectedNetwork) => {
 module.exports = {
   getNetworkInfo,
   getSigner,
+  rpcUrl,
 };
