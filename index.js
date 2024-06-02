@@ -6,7 +6,7 @@ const pkpHelperABI = require("./abis/PKPHelper.json");
 const pkpABI = require("./abis/PKPNFT.json");
 
 const litNetwork = "manzano";
-const howManyToMint = 10;
+const howManyToMint = 100;
 
 async function main() {
   const network = await getNetworkInfo(litNetwork);
@@ -62,12 +62,50 @@ async function main() {
       );
       allTimings.push(timings);
     } catch (e) {
-      console.log(`error minting and signing with pkp ${i}`, e);
+      console.log(`error minting pkp ${i}`, e);
     }
   }
 
-  console.log(`All timings: ${JSON.stringify(allTimings, null, 2)}`);
-  console.log("Success!");
+  const sendTxTimes = allTimings.map((t) => t.sendTx);
+  const waitForTxConfirmationTimes = allTimings.map(
+    (t) => t.waitForTxConfirmation
+  );
+
+  const calculateStats = (times) => {
+    times.sort((a, b) => a - b);
+    const min = times[0];
+    const max = times[times.length - 1];
+    const median =
+      times.length % 2 === 0
+        ? (times[times.length / 2 - 1] + times[times.length / 2]) / 2
+        : times[Math.floor(times.length / 2)];
+    const average = times.reduce((acc, curr) => acc + curr, 0) / times.length;
+    return {
+      min: parseFloat((min / 1000).toFixed(2)),
+      max: parseFloat((max / 1000).toFixed(2)),
+      median: parseFloat((median / 1000).toFixed(2)),
+      average: parseFloat((average / 1000).toFixed(2)),
+    };
+  };
+
+  const sendTxStats = calculateStats(sendTxTimes);
+  const waitForTxConfirmationStats = calculateStats(waitForTxConfirmationTimes);
+
+  //   console.log(`All timings: ${JSON.stringify(allTimings, null, 2)}`);
+
+  console.log(
+    `SendTx Times - Min: ${sendTxStats.min}, Max: ${sendTxStats.max}, Median: ${sendTxStats.median}, Average: ${sendTxStats.average}`
+  );
+  console.log(
+    `WaitForTxConfirmation Times - Min: ${waitForTxConfirmationStats.min}, Max: ${waitForTxConfirmationStats.max}, Median: ${waitForTxConfirmationStats.median}, Average: ${waitForTxConfirmationStats.average}`
+  );
+
+  const successPercentage = parseFloat(
+    ((allTimings.length / howManyToMint) * 100).toFixed(2)
+  );
+  console.log(
+    `${successPercentage}% success rate: ${allTimings.length} successes out of ${howManyToMint} attempts.`
+  );
   process.exit(0);
 }
 
