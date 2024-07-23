@@ -4,13 +4,18 @@ const stakingContractABI = require("./abis/Staking.json");
 const resolverContractABI = require("./abis/ContractResolver.json");
 const fs = require("fs");
 
-const rpcUrl = "https://lit-protocol.calderachain.xyz/replica-http";
 const privateKey = process.env.LIT_PKP_PARALLEL_KEYGEN_PRIVATE_KEY;
 
 const networks = {
+  datilDev: {
+    stakingContractAddress: "0xdec37933239846834b3BfD408913Ed3dbEf6588F",
+    env: "dev",
+    rpcUrl: "https://yellowstone-rpc.litprotocol.com",
+  },
   manzano: {
     stakingContractAddress: "0xBC7F8d7864002b6629Ab49781D5199C8dD1DDcE1",
     env: "dev",
+    rpcUrl: "https://lit-protocol.calderachain.xyz/replica-http",
   },
 };
 
@@ -40,7 +45,7 @@ const getNetworkInfo = async (selectedNetwork) => {
 
   // resolve addresses
   const network = networks[selectedNetwork];
-  const { env, stakingContractAddress } = network;
+  const { env, stakingContractAddress, rpcUrl } = network;
 
   // lookup resolver contract address from staking contract
   //   const provider = new ethers.JsonRpcProvider(rpcUrl);
@@ -113,5 +118,4 @@ const getNetworkInfo = async (selectedNetwork) => {
 module.exports = {
   getNetworkInfo,
   getSigner,
-  rpcUrl,
 };

@@ -2,12 +2,12 @@
 const { ethers: ethersv5 } = require("ethers-v5");
 const axios = require("axios");
 
-const { getSigner, getNetworkInfo, rpcUrl } = require("./utils.js");
+const { getSigner, getNetworkInfo } = require("./utils.js");
 
 const pkpHelperABI = require("./abis/PKPHelper.json");
 const pkpABI = require("./abis/PKPNFT.json");
 
-const litNetwork = "manzano";
+const litNetwork = "datilDev";
 const howManyToMint = 100;
 
 async function main() {
@@ -32,11 +32,13 @@ async function main() {
   const pkp = new ethersv5.Contract(pkpNftContractAddress, pkpABI, signer);
 
   const allTimings = [];
+  const allTxHashes = [];
+  const reverts = [];
 
   console.log("getting mint cost...");
   const mintCost = await pkp.mintCost();
   console.log("mintCost is ", mintCost.toString());
-  for (let i = 0; i < howManyToMint; i++) {
+  mainLoop: for (let i = 0; i < howManyToMint; i++) {
     console.log(`minting pubkey ${i}`);
 
     try {
@@ -123,6 +125,11 @@ async function main() {
       const mintTx = { hash: data.result };
       timings["sendTx"] = elapsed;
       console.log("mintTx hash", mintTx.hash);
+      if (!mintTx.hash) {
+        console.log("mintTx hash is null, skipping");
+        continue;
+      }
+      allTxHashes.push(mintTx.hash);
       //   blockNumber = await signer.provider.getBlockNumber();
       //   console.log("blockNumber after minting", blockNumber);
       now = Date.now();
@@ -148,8 +155,14 @@ async function main() {
             }
           );
           //   console.log("data", data);
-          if (data.result && data.result.status == "0x1") {
-            receipt = data.result;
+          if (data.result) {
+            if (data.result.status == "0x1") {
+              receipt = data.result;
+            } else {
+              // the tx failed for some reason.  skip and continue.  we won't mark it as successful.
+              reverts.push(mintTx.hash);
+              continue mainLoop;
+            }
           } else {
             console.log("waiting for tx confirmation, attempt ", attempts);
             await new Promise((resolve) => setTimeout(resolve, 100));
@@ -211,6 +224,9 @@ async function main() {
   console.log(
     `${successPercentage}% success rate: ${allTimings.length} successes out of ${howManyToMint} attempts.`
   );
+  console.log("all txn hashes: ", JSON.stringify(allTxHashes, null, 2));
+  console.log("reverts: ", JSON.stringify(reverts, null, 2));
+
   process.exit(0);
 }
 
