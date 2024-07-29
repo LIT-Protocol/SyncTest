@@ -82,7 +82,8 @@ async function main() {
       const gasLimit = await signer.estimateGas(mintTxData);
       elapsed = Date.now() - now;
       timings["estimateGas"] = elapsed;
-      mintTxData.gasLimit = gasLimit;
+      // add 5% bump using bignumber
+      mintTxData.gasLimit = gasLimit.mul(105).div(100);
 
       now = Date.now();
       const feeData = await signer.getFeeData();
