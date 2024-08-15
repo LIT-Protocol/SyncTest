@@ -14,15 +14,9 @@ async function main() {
   const network = await getNetworkInfo(litNetwork);
   const { pkpHelperContractAddress, pkpNftContractAddress, rpcUrl } = network;
 
+  const provider = new ethersv5.providers.JsonRpcProvider(rpcUrl);
   const signer = await getSigner(rpcUrl);
   const signerAddress = await signer.getAddress();
-
-  //   const pkpHelper = new ethers.Contract(
-  //     pkpHelperContractAddress,
-  //     pkpHelperABI,
-  //     signer
-  //   );
-  //   const pkp = new ethers.Contract(pkpNftContractAddress, pkpABI, signer);
 
   const pkpHelper = new ethersv5.Contract(
     pkpHelperContractAddress,
@@ -43,21 +37,9 @@ async function main() {
 
     try {
       const timings = {};
-      //   let blockNumber = await signer.provider.getBlockNumber();
-      //   console.log("blockNumber before minting", blockNumber);
-      // mint and let the signerAddress use it
-      //   const mintTx = await pkpHelper.mintNextAndAddAuthMethods(
-      //     2,
-      //     [1],
-      //     [signerAddress],
-      //     ["0x00"],
-      //     [[1]],
-      //     false,
-      //     false,
-      //     { value: mintCost }
-      //   );
+      const totalTimeStart = Date.now();
       let now = Date.now();
-      const mintTxData =
+      let mintTxData =
         await pkpHelper.populateTransaction.mintNextAndAddAuthMethods(
           2,
           [1],
@@ -70,62 +52,43 @@ async function main() {
         );
       let elapsed = Date.now() - now;
       timings["createTxData"] = elapsed;
+
+      now = Date.now();
+      mintTxData = await signer.populateTransaction(mintTxData);
+      elapsed = Date.now() - now;
+      timings["populateTxData"] = elapsed;
       //   console.log("mintTxData", mintTxData);
+      // add 10% bump using bignumber
+      mintTxData.gasLimit = mintTxData.gasLimit.mul(110).div(100);
 
       now = Date.now();
-      let nonce = await signer.getTransactionCount("pending");
-      elapsed = Date.now() - now;
-      timings["getNonce"] = elapsed;
-      mintTxData.nonce = nonce;
-
-      now = Date.now();
-      const gasLimit = await signer.estimateGas(mintTxData);
-      elapsed = Date.now() - now;
-      timings["estimateGas"] = elapsed;
-      // add 5% bump using bignumber
-      mintTxData.gasLimit = gasLimit.mul(110).div(100);
-
-      now = Date.now();
-      const feeData = await signer.getFeeData();
-      elapsed = Date.now() - now;
-      timings["getFeeData"] = elapsed;
-      //   console.log("feeData", feeData);
-      mintTxData.gasPrice = feeData.gasPrice;
-      mintTxData.type = 0;
-
-      now = Date.now();
-      const txnWithGas = await signer.populateTransaction(mintTxData);
-      elapsed = Date.now() - now;
-      timings["populateTxWithGas"] = elapsed;
-
-      now = Date.now();
-      const serializedTxn = await signer.signTransaction(txnWithGas);
+      const serializedTxn = await signer.signTransaction(mintTxData);
       elapsed = Date.now() - now;
       timings["signTx"] = elapsed;
 
       let params = [serializedTxn];
       //   console.log(`params: ${JSON.stringify(params, null, 2)}`);
       now = Date.now();
-      // const mintTx = await signer.sendTransaction(serializedTxn);
+      const mintTx = await provider.sendTransaction(serializedTxn);
 
       // send manually
-      const { data } = await axios.post(
-        rpcUrl,
-        {
-          jsonrpc: "2.0",
-          method: "eth_sendRawTransaction",
-          params: params,
-          id: 1,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          timeout: 60000,
-        }
-      );
-      console.log("data", data);
-      const mintTx = { hash: data.result };
+      //   const { data } = await axios.post(
+      //     rpcUrl,
+      //     {
+      //       jsonrpc: "2.0",
+      //       method: "eth_sendRawTransaction",
+      //       params: params,
+      //       id: 1,
+      //     },
+      //     {
+      //       headers: {
+      //         "Content-Type": "application/json",
+      //       },
+      //       timeout: 60000,
+      //     }
+      //   );
+      //   console.log("data", data);
+      //   const mintTx = { hash: data.result };
       elapsed = Date.now() - now;
       timings["sendTx"] = elapsed;
       console.log("mintTx hash", mintTx.hash);
@@ -137,51 +100,13 @@ async function main() {
       //   blockNumber = await signer.provider.getBlockNumber();
       //   console.log("blockNumber after minting", blockNumber);
       now = Date.now();
-      //   const receipt = await mintTx.wait();
-      params = [mintTx.hash];
-      let receipt = false;
-      let attempts = 1;
-      while (!receipt) {
-        try {
-          const { data } = await axios.post(
-            rpcUrl,
-            {
-              jsonrpc: "2.0",
-              method: "eth_getTransactionReceipt",
-              params: params,
-              id: attempts++,
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-              timeout: 60000,
-            }
-          );
-          //   console.log("data", data);
-          if (data.result) {
-            if (data.result.status == "0x1") {
-              receipt = data.result;
-            } else {
-              // the tx failed for some reason.  skip and continue.  we won't mark it as successful.
-              reverts.push(mintTx.hash);
-              continue mainLoop;
-            }
-          } else {
-            console.log("waiting for tx confirmation, attempt ", attempts);
-            await new Promise((resolve) => setTimeout(resolve, 100));
-          }
-        } catch (e) {
-          console.log("error getting receipt", e);
-        }
-      }
+      const receipt = await mintTx.wait();
+
       elapsed = Date.now() - now;
       timings["waitForTxConfirmation"] = elapsed;
-      //   blockNumber = await signer.provider.getBlockNumber();
-      //   console.log("blockNumber after mintTx.wait()", blockNumber);
-      const publicKey = receipt.logs[2].data.substr(130, 130);
-      //   const tokenId = ethers.keccak256("0x" + publicKey);
-      //   const tokenId = ethersv5.utils.keccak256("0x" + publicKey);
+      elapsed = Date.now() - totalTimeStart;
+      timings["totalTime"] = elapsed;
+
       console.log(
         `Success on number ${i}: ${JSON.stringify(timings, null, 2)}`
       );

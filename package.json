@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "keepalive": "node keepalive.js"
+    "simple": "node simple.js"
   },
   "keywords": [],
   "author": "",
