@@ -1,6 +1,12 @@
 // const { ethers } = require("ethers");
 const { ethers: ethersv5 } = require("ethers-v5");
-const axios = require("axios");
+const args = require("args");
+args.option(
+  "txnconf",
+  'The txn confirmation strategy.  Either "wait" or "polling"',
+  "wait"
+);
+const flags = args.parse(process.argv);
 
 const { getSigner, getNetworkInfo } = require("./utils.js");
 
@@ -71,24 +77,6 @@ async function main() {
       now = Date.now();
       const mintTx = await provider.sendTransaction(serializedTxn);
 
-      // send manually
-      //   const { data } = await axios.post(
-      //     rpcUrl,
-      //     {
-      //       jsonrpc: "2.0",
-      //       method: "eth_sendRawTransaction",
-      //       params: params,
-      //       id: 1,
-      //     },
-      //     {
-      //       headers: {
-      //         "Content-Type": "application/json",
-      //       },
-      //       timeout: 60000,
-      //     }
-      //   );
-      //   console.log("data", data);
-      //   const mintTx = { hash: data.result };
       elapsed = Date.now() - now;
       timings["sendTx"] = elapsed;
       console.log("mintTx hash", mintTx.hash);
@@ -100,7 +88,16 @@ async function main() {
       //   blockNumber = await signer.provider.getBlockNumber();
       //   console.log("blockNumber after minting", blockNumber);
       now = Date.now();
-      const receipt = await mintTx.wait();
+      let receipt = null;
+      if (flags.txnconf === "wait") {
+        receipt = await mintTx.wait();
+      } else {
+        while (!receipt) {
+          receipt = await provider.getTransactionReceipt(mintTx.hash);
+          // wait 100ms
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+      }
 
       elapsed = Date.now() - now;
       timings["waitForTxConfirmation"] = elapsed;
