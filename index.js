@@ -43,6 +43,7 @@ async function main() {
 
     try {
       const timings = {};
+      const totalTimeStart = Date.now();
       //   let blockNumber = await signer.provider.getBlockNumber();
       //   console.log("blockNumber before minting", blockNumber);
       // mint and let the signerAddress use it
@@ -177,6 +178,8 @@ async function main() {
       }
       elapsed = Date.now() - now;
       timings["waitForTxConfirmation"] = elapsed;
+      elapsed = Date.now() - totalTimeStart;
+      timings["totalTime"] = elapsed;
       //   blockNumber = await signer.provider.getBlockNumber();
       //   console.log("blockNumber after mintTx.wait()", blockNumber);
       const publicKey = receipt.logs[2].data.substr(130, 130);
