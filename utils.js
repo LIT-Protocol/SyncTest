@@ -3,6 +3,7 @@ const { ethers: ethersv5 } = require("ethers-v5");
 const stakingContractABI = require("./abis/Staking.json");
 const resolverContractABI = require("./abis/ContractResolver.json");
 const fs = require("fs");
+const LoggingProvider = require("./loggingProvider");
 
 const privateKey = process.env.LIT_PKP_PARALLEL_KEYGEN_PRIVATE_KEY;
 
@@ -10,7 +11,7 @@ const networks = {
   datilDev: {
     stakingContractAddress: "0xdec37933239846834b3BfD408913Ed3dbEf6588F",
     env: "dev",
-    rpcUrl: "https://yellowstone-rpc.litprotocol.com",
+    rpcUrl: "https://yellowstone-rpc-india.litprotocol.com",
   },
   manzano: {
     stakingContractAddress: "0xBC7F8d7864002b6629Ab49781D5199C8dD1DDcE1",
@@ -23,6 +24,8 @@ const getSigner = async (rpcUrl) => {
   //   const provider = new ethers.JsonRpcProvider(rpcUrl);
   //   const wallet = new ethers.Wallet(privateKey, provider);
   const provider = new ethersv5.providers.JsonRpcProvider(rpcUrl);
+  //const provider = new LoggingProvider(rpcUrl);
+  //provider.pollingInterval = 100;
   const wallet = new ethersv5.Wallet(privateKey, provider);
   return wallet;
 };
