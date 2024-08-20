@@ -90,7 +90,7 @@ async function main() {
       now = Date.now();
       let receipt = null;
       if (flags.txnconf === "wait") {
-	console.log(`polling interval: ${signer.provider.pollingInterval}`)
+	//console.log(`polling interval: ${signer.provider.pollingInterval}`)
         receipt = await mintTx.wait();
       } else {
         while (!receipt) {
