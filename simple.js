@@ -20,7 +20,6 @@ async function main() {
   const network = await getNetworkInfo(litNetwork);
   const { pkpHelperContractAddress, pkpNftContractAddress, rpcUrl } = network;
 
-  const provider = new ethersv5.providers.JsonRpcProvider(rpcUrl);
   const signer = await getSigner(rpcUrl);
   const signerAddress = await signer.getAddress();
 
@@ -75,7 +74,7 @@ async function main() {
       let params = [serializedTxn];
       //   console.log(`params: ${JSON.stringify(params, null, 2)}`);
       now = Date.now();
-      const mintTx = await provider.sendTransaction(serializedTxn);
+      const mintTx = await signer.provider.sendTransaction(serializedTxn);
 
       elapsed = Date.now() - now;
       timings["sendTx"] = elapsed;

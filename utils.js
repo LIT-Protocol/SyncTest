@@ -23,9 +23,9 @@ const networks = {
 const getSigner = async (rpcUrl) => {
   //   const provider = new ethers.JsonRpcProvider(rpcUrl);
   //   const wallet = new ethers.Wallet(privateKey, provider);
-  const provider = new ethersv5.providers.JsonRpcProvider(rpcUrl);
   //const provider = new LoggingProvider(rpcUrl);
-  //provider.pollingInterval = 100;
+  const provider = new ethersv5.providers.JsonRpcProvider(rpcUrl);
+  provider.pollingInterval = 100;
   const wallet = new ethersv5.Wallet(privateKey, provider);
   return wallet;
 };
