@@ -38,8 +38,8 @@ async function main() {
     },
     rpcUrls: {
       default: {
-        http: ["https://yellowstone-rpc.litprotocol.com"],
-        webSocket: ["wss://yellowstone-rpc.litprotocol.com"],
+        http: [rpcUrl],
+        // webSocket: ["wss://yellowstone-rpc.litprotocol.com"],
       },
     },
     blockExplorers: {
