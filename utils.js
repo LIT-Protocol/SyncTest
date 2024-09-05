@@ -11,7 +11,7 @@ const networks = {
   datilDev: {
     stakingContractAddress: "0xdec37933239846834b3BfD408913Ed3dbEf6588F",
     env: "dev",
-    rpcUrl: "https://yellowstone-rpc-india.litprotocol.com",
+    rpcUrl: "https://yellowstone-rpc.litprotocol.com",
   },
   manzano: {
     stakingContractAddress: "0xBC7F8d7864002b6629Ab49781D5199C8dD1DDcE1",
