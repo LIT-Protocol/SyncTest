@@ -15,10 +15,12 @@ async function main() {
   for (let i = 0; i < totalRequests; i++) {
     queue.add(async () => {
       try {
+        const now = Date.now();
         const txnCount = await provider.getTransactionCount(
           "0x50e2dac5e78B5905CB09495547452cEE64426db2"
         );
-        console.log(`txnCount: ${txnCount}`);
+        const timeTaken = Date.now() - now;
+        console.log(`txnCount: ${txnCount} in ${timeTaken}ms`);
         successCount++;
       } catch (e) {
         console.log(`Error: ${e}`);
